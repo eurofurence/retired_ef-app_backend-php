@@ -81,8 +81,8 @@ parameters:
   deltaSinceDateTimeUtc:
     name: since
     in: query
-    description: 'Delta reference, date time in **ISO860**. If set, only items 
-      with a *LastChangeDateTimeUtc* > the specified value will be returned.
+    description: 'Delta reference, date time in **ISO 8610**. If set, only items 
+      with a *LastChangeDateTimeUtc* >= the specified value will be returned.
       If not set, API will return the current set of records without
       deleted items. If set, items deleted since the delta specified will be
       returned with an *IsDeleted* flag set.'
@@ -103,7 +103,7 @@ definitions:
       LastChangeDateTimeUtc:
         type: string
         format: date-time
-        description: Date & Time (UTC) in ISO8601 format of when the entity was
+        description: Date & Time (UTC) in **ISO 8601** format of when the entity was
           last changed. (Will also be updated upon deletion)
       IsDeleted:
         type: number
