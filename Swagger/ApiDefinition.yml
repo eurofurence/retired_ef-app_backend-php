@@ -1,0 +1,212 @@
+swagger: '2.0'
+host: eurofurencewebapi.azurewebsites.net
+consumes:
+  - application/json
+produces:
+  - application/json
+info:
+  version: 0.0.2
+  title: Eurofurence Mobile Apps Web API
+  contact:
+    name: Luchs
+    url: https://forum.eurofurence.org
+    
+  
+paths:
+  /Endpoint:
+    get:
+      description: |
+        Gets metadata information about the API Endpoint
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            $ref: '#/definitions/Endpoint'
+  /EventEntry:
+    get:
+      description: Retrieves a list of all events in the event schedule.
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EventEntry'
+
+  /EventConferenceTrack:
+    get:
+      description: Retrieves a list of all event conference tracks.
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EventConferenceTrackEntry'              
+              
+  /EventConferenceDay:
+    get:
+      description: Retrieves a list of all event conference days.
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EventConferenceDayEntry'                     
+
+#  /EventEntry/{Id}:
+#    get: 
+#      description: Retrieves a single event in the event schedule by its id.
+#      responses:
+#        200:
+#          description: OK
+#          schema:
+#            $ref: '#/definitions/EventEntry'
+#      parameters:
+#        - in: path
+#          name: Id
+#          required: true
+#          type: string
+#          format: uuid
+          
+
+parameters:
+  deltaSinceDateTimeUtc:
+    name: since
+    in: query
+    description: 'Delta reference, date time in **ISO860**. If set, only items 
+      with a *LastChangeDateTimeUtc* > the specified value will be returned.
+      If not set, API will return the current set of records without
+      deleted items. If set, items deleted since the delta specified will be
+      returned with an *IsDeleted* flag set.'
+    required: false
+    type: string
+    format: date-time  
+      
+definitions:
+  EntityBase:
+    type: object
+    properties:
+      Id:
+        type: string
+        format: uuid
+        description: Universally Unique Identifier (16bytes / 36char string),
+          e.g 550e8400-e29b-11d4-a716-446655440000
+        default: 00000000-0000-0000-0000-000000000000
+      LastChangeDateTimeUtc:
+        type: string
+        format: date-time
+        description: Date & Time (UTC) in ISO8601 format of when the entity was
+          last changed. (Will also be updated upon deletion)
+      IsDeleted:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Numeric flag that, if set to "1", indicates that the
+          record has been deleted sine the delta reference specified, and
+          should be removed from the local data store after retrieval.
+        
+  EventEntry:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        SourceEventId:
+          type: number
+        Slug:
+          type: string
+        Title:
+          type: string
+        ConferenceTrackId:
+          type: string
+          format: uuid
+        Abstract:
+          type: string
+        Description:
+          type: string
+        ConferenceDayId:
+          type: string
+          format: uuid
+        StartTime:
+          type: string
+        EndTime:
+          type: string
+        Duration:
+          type: string
+        ConferenceRoom:
+          type: string
+        PanelHosts:
+          type: string
+          
+  EventConferenceDayEntry:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object    
+      properties:
+        Name:
+          type: string
+          description: Name of the conference day, e,g, "Sat - Con Day 4".          
+        Date:
+          type: string
+          format: date (YYYY-MM-DD)
+          description: Conference day in date format (YYYY-MM-DD) 
+          
+  EventConferenceTrackEntry:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object    
+      properties:
+        Name:
+          type: string
+          description: Name of the conference track.
+
+  Endpoint:
+    type: object
+    properties:
+      CurrentDateTimeUtc:
+        type: string
+        format: date-time
+      Configuration:
+        type: array
+        items:
+          $ref: '#/definitions/EndpointConfiguration'
+      Entities:
+        type: array
+        items:
+          $ref: '#/definitions/EndpointEntity'
+  EndpointConfiguration:
+    type: object
+    properties:
+      Id:
+        type: string
+        format: uuid
+      ResourceKey:
+        type: string
+      Value:
+        type: string
+  EndpointEntity:
+    type: object
+    properties:
+      Id:
+        type: string
+        format: uuid
+      Name:
+        type: string
+      TableName:
+        type: string
+      LastChangeDateTimeUtc:
+        type: string
+        format: date-time
+      Count:
+        type: number
+        description: Number of records (including deleted ones) in the table.
