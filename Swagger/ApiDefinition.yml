@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.2
+  version: 0.0.3
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -15,8 +15,7 @@ info:
 paths:
   /Endpoint:
     get:
-      description: |
-        Gets metadata information about the API Endpoint
+      description: Gets metadata information about the API Endpoint.
       responses:
         '200':
           description: Successful response
@@ -61,21 +60,19 @@ paths:
             items:
               $ref: '#/definitions/EventConferenceDayEntry'                     
 
-#  /EventEntry/{Id}:
-#    get: 
-#      description: Retrieves a single event in the event schedule by its id.
-#      responses:
-#        200:
-#          description: OK
-#          schema:
-#            $ref: '#/definitions/EventEntry'
-#      parameters:
-#        - in: path
-#          name: Id
-#          required: true
-#          type: string
-#          format: uuid
-          
+  /EventConferenceRoom:
+    get:
+      description: Retrieves a list of all conference rooms.
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EventConferenceRoomEntry'   
+
 
 parameters:
   deltaSinceDateTimeUtc:
@@ -99,7 +96,6 @@ definitions:
         format: uuid
         description: Universally Unique Identifier (16bytes / 36char string),
           e.g 550e8400-e29b-11d4-a716-446655440000
-        default: 00000000-0000-0000-0000-000000000000
       LastChangeDateTimeUtc:
         type: string
         format: date-time
@@ -112,6 +108,14 @@ definitions:
         description: Numeric flag that, if set to "1", indicates that the
           record has been deleted sine the delta reference specified, and
           should be removed from the local data store after retrieval.
+    required:
+      - Id
+      - LastChangeDateTimeUtc
+      - IsDeleted
+    example:
+      Id: 550e8400-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
         
   EventEntry:
     type: object
@@ -128,23 +132,53 @@ definitions:
         ConferenceTrackId:
           type: string
           format: uuid
+        ConferenceDayId:
+          type: string
+          format: uuid
+        ConferenceRoomId:
+          type: string
+          format: uuid
         Abstract:
           type: string
         Description:
           type: string
-        ConferenceDayId:
-          type: string
-          format: uuid
         StartTime:
           type: string
         EndTime:
           type: string
         Duration:
           type: string
-        ConferenceRoom:
-          type: string
         PanelHosts:
           type: string
+      required:
+        - SourceEventId
+        - Slug
+        - Title
+        - ConferenceTrackId
+        - Abstract
+        - Description
+        - ConferenceDayId
+        - StartTime
+        - EndTime
+        - Duration
+        - ConferenceRoomId
+        - PanelHosts
+    example:
+      Id: 550e8400-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
+      SourceEventId: 123
+      Slug: artist_lounge_tue
+      Title: Artist's Lounge - Let's be creative together!
+      ConferenceTrackId: e6ea7350-c2c9-11e5-855c-00155d17ae4a
+      ConferenceDayId: 55c7f0dd-c46f-11e5-af20-00155d17ae4a
+      ConferenceRoomId: 15c7f0dd-c46f-11e5-af20-00155d17ae4b
+      Abstract: Do you like spending your evening around other artists, drawing and chatting about techniques? Then this social event, taking place every evening, is the right place for you to be creative!
+      Description: Do you like spending your evening around other artists, drawing and chatting about techniques? Then this social event, taking place every evening, is the right place for you to be creative!
+      StartTime: '14:00:00'
+      EndTime: '02:00:00'
+      Duration: '12:00:00'
+      PanelHosts: Akulatraxas
           
   EventConferenceDayEntry:
     type: object
@@ -159,6 +193,15 @@ definitions:
           type: string
           format: date (YYYY-MM-DD)
           description: Conference day in date format (YYYY-MM-DD) 
+      required:
+      - Name
+      - Date
+    example:
+      Id: 550e8400-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
+      Name: Tue - Early Arrival
+      Date: '2015-08-18'
           
   EventConferenceTrackEntry:
     type: object
@@ -169,6 +212,30 @@ definitions:
         Name:
           type: string
           description: Name of the conference track.
+      required:
+      - Name
+    example:
+      Id: 550e8400-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
+      Name: Stage
+
+  EventConferenceRoomEntry:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object    
+      properties:
+        Name:
+          type: string
+          description: Name of the conference room.
+      required:
+      - Name
+    example:
+      Id: 550e8400-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
+      Name: Conference Room 2 - Estrel Hall A      
 
   Endpoint:
     type: object
@@ -184,6 +251,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/EndpointEntity'
+          
   EndpointConfiguration:
     type: object
     properties:
@@ -194,6 +262,7 @@ definitions:
         type: string
       Value:
         type: string
+        
   EndpointEntity:
     type: object
     properties:
