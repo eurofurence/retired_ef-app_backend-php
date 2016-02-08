@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.3
+  version: 0.0.4
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -45,7 +45,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/EventConferenceTrackEntry'              
+              $ref: '#/definitions/EventConferenceTrack'              
               
   /EventConferenceDay:
     get:
@@ -58,7 +58,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/EventConferenceDayEntry'                     
+              $ref: '#/definitions/EventConferenceDay'                     
 
   /EventConferenceRoom:
     get:
@@ -71,8 +71,46 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/EventConferenceRoomEntry'   
+              $ref: '#/definitions/EventConferenceRoom'   
 
+  /InfoGroup:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/InfoGroup'   
+              
+  /Info:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Info'   
+              
+  /Image:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Image'                 
 
 parameters:
   deltaSinceDateTimeUtc:
@@ -116,7 +154,7 @@ definitions:
       Id: 550e8400-e29b-11d4-a716-446655440000
       LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
       IsDeleted: 0
-        
+      
   EventEntry:
     type: object
     allOf: 
@@ -180,7 +218,7 @@ definitions:
       Duration: '12:00:00'
       PanelHosts: Akulatraxas
           
-  EventConferenceDayEntry:
+  EventConferenceDay:
     type: object
     allOf: 
     - $ref: '#/definitions/EntityBase'
@@ -203,7 +241,7 @@ definitions:
       Name: Tue - Early Arrival
       Date: '2015-08-18'
           
-  EventConferenceTrackEntry:
+  EventConferenceTrack:
     type: object
     allOf: 
     - $ref: '#/definitions/EntityBase'
@@ -220,7 +258,7 @@ definitions:
       IsDeleted: 0
       Name: Stage
 
-  EventConferenceRoomEntry:
+  EventConferenceRoom:
     type: object
     allOf: 
     - $ref: '#/definitions/EntityBase'
@@ -229,6 +267,14 @@ definitions:
         Name:
           type: string
           description: Name of the conference room.
+        ImageEntryId:
+          type: string
+          description: Id of the (map) image that shows the room
+        ImageRoomPositionPoint:
+          type: string
+          format: X,Y
+          description: Percentual coordinates on the original image indicating
+            the entrance of the room.
       required:
       - Name
     example:
@@ -279,3 +325,82 @@ definitions:
       Count:
         type: number
         description: Number of records (including deleted ones) in the table.
+
+  InfoGroup:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        Name:
+          type: string
+          description: Name of the information group
+        Description:
+          type: string
+          description: Shhort description of the information group
+        Order:
+          type: integer
+          description: Numeric order/position of the element (lower number =
+            display first)
+    example:
+      Id: 12345678-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
+      Name: Fursuit Information
+      Description: Various helpful information helpful to fursuiters.
+      Order: 4
+  
+  Info:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        InfoGroupEntryId:
+          type: string
+          format: uuid
+          description: Id of the InfoGroup this record belongs to.
+        ImageEntryId:
+          type: string
+          format: uuid
+        Title:
+          type: string
+          description: Title of the message blob.
+        Text:
+          type: string
+          description: Content of the message blob, may contain markup (tbd).
+        Order:
+          type: integer
+          description: Numeric order/position of the element (lower number =
+            display first)          
+    example:
+      Id: 34567890-e29b-11d4-a716-446655440000
+      LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
+      IsDeleted: 0
+      InfoGroupEntryId: 12345678-e29b-11d4-a716-446655440000
+      Title: Fursuit Parade
+      Text: Don't miss out when the entire furry tribe gathers for their annual
+        march through the overgrown ruins of ancient societies , and assembles
+        near the old canal to capture the moment in full color pictures. 
+        The Eurofurence Parade is traditionally an outdoor event, 
+        if the weather permits.
+      Order: 1
+
+  Image:
+    type: object
+    allOf: 
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        Url:
+          type: string
+        Title:
+          type: string
+        Width:
+          type: integer
+        Height:
+          type: integer    
+        FileSizeInBytes:
+          type: integer
+        MimeType:
+          type: string
