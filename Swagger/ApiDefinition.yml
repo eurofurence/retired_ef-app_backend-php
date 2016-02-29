@@ -338,7 +338,7 @@ definitions:
         Description:
           type: string
           description: Shhort description of the information group
-        Order:
+        Position:
           type: integer
           description: Numeric order/position of the element (lower number =
             display first)
@@ -348,7 +348,7 @@ definitions:
       IsDeleted: 0
       Name: Fursuit Information
       Description: Various helpful information helpful to fursuiters.
-      Order: 4
+      Position: 4
   
   Info:
     type: object
@@ -369,7 +369,7 @@ definitions:
         Text:
           type: string
           description: Content of the message blob, may contain markup (tbd).
-        Order:
+        Position:
           type: integer
           description: Numeric order/position of the element (lower number =
             display first)          
@@ -384,7 +384,7 @@ definitions:
         near the old canal to capture the moment in full color pictures. 
         The Eurofurence Parade is traditionally an outdoor event, 
         if the weather permits.
-      Order: 1
+      Position: 1
 
   Image:
     type: object
