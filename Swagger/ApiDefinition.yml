@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.4
+  version: 0.0.5
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -163,6 +163,9 @@ definitions:
       properties:
         SourceEventId:
           type: number
+        ImageId:
+          type: string
+          format: uuid
         Slug:
           type: string
         Title:
