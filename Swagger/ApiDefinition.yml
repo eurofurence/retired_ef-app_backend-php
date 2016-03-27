@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.5
+  version: 0.0.6
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -341,6 +341,9 @@ definitions:
         Description:
           type: string
           description: Shhort description of the information group
+        ImageId:
+          type: string
+          format: uuid          
         Position:
           type: integer
           description: Numeric order/position of the element (lower number =
@@ -359,11 +362,11 @@ definitions:
     - $ref: '#/definitions/EntityBase'
     - type: object
       properties:
-        InfoGroupEntryId:
+        InfoGroupId:
           type: string
           format: uuid
           description: Id of the InfoGroup this record belongs to.
-        ImageEntryId:
+        ImageId:
           type: string
           format: uuid
         Title:
@@ -380,7 +383,7 @@ definitions:
       Id: 34567890-e29b-11d4-a716-446655440000
       LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
       IsDeleted: 0
-      InfoGroupEntryId: 12345678-e29b-11d4-a716-446655440000
+      InfoGroupId: 12345678-e29b-11d4-a716-446655440000
       Title: Fursuit Parade
       Text: Don't miss out when the entire furry tribe gathers for their annual
         march through the overgrown ruins of ancient societies , and assembles
