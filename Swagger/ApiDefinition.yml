@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.6
+  version: 0.0.7
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -110,7 +110,20 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Image'                 
+              $ref: '#/definitions/Image'   
+              
+  /Announcement:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Announcement'                  
 
 parameters:
   deltaSinceDateTimeUtc:
@@ -409,4 +422,25 @@ definitions:
         FileSizeInBytes:
           type: integer
         MimeType:
+          type: string
+
+  Announcement:
+    type: object
+    allOf:
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        ValidFromDateTimeUtc:
+          type: string
+          format: date-time
+        ValidUntilDateTimeUtc:
+          type: string
+          format: date-time
+        Area:
+          type: string
+        Author:
+          type: string
+        Title:
+          type: string
+        Content:
           type: string
