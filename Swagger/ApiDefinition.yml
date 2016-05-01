@@ -444,3 +444,19 @@ definitions:
           type: string
         Content:
           type: string
+      required:
+      - ValidFromDateTimeUtc
+      - ValidUntilDateTimeUtc
+      - Area
+      - Author
+      - Title
+      - Content
+    example:
+      Id: 23942bc0-0f89-11e6-9a21-000d3a207970
+      LastChangeDateTimeUtc: 2016-05-01T00:00:00Z
+      ValidFromDateTimeUtc: 2016-05-01T00:00:00Z
+      ValidUntilDateTimeUtc: 2016-05-30T00:00:00Z
+      Area: Development
+      Author: Luchs
+      Title: Announcements ready for testing
+      Content: The announcements endpoint is now available for developers to test. Thank you for any feedback! :)
