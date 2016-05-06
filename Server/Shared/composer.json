@@ -1,0 +1,7 @@
+{
+    "require": {
+        "athari/yalinqo": "~2.0",
+        "sergeytsalkov/meekrodb": "*",
+        "slim/slim": "3.3.0"
+    }
+}
