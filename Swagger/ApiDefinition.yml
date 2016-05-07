@@ -491,7 +491,7 @@ definitions:
           type: string
         AboutTheArtistText:
           type: string
-        AboutTheartText:
+        AboutTheArtText:
           type: string
         WebsiteUri:
           type: string
@@ -512,7 +512,7 @@ definitions:
       - DisplayName
       - ShortDescription
       - AboutTheArtistText
-      - AboutTheartText
+      - AboutTheArtText
     example:
       Id: 7bedb6b3-1420-11e6-862f-50e54943cb1d
       LastChangeDateTimeUtc: 2016-05-01T00:00:00Z
