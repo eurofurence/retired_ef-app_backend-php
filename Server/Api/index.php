@@ -40,6 +40,7 @@ $app->get('/Endpoint', function (Request $request, Response $response, $args) us
 		);
 });
 
+
 // Register all Endpoints for Table Enumeration & Indexer
 foreach($endpointEntities as $id => $entity) {
 	$app->get('/' . $entity["Name"], 
@@ -63,11 +64,17 @@ foreach($endpointEntities as $id => $entity) {
 	$app->get('/' . $entity["Name"] . "/{Id}", 
 		function (Request $request, Response $response) use ($endpointDatabase, $entity) {
 			return $response->withJson(
-					$endpointDatabase->queryFirstRow("SELECT * FROM " . $entity["TableName"] ." WHERE Id = ##d",  $request->getAttribute('id'))
+					$endpointDatabase->queryFirstRow("SELECT * FROM " . $entity["TableName"] ." WHERE Id = ##s",  $request->getAttribute('id'))
 				);
 		}
 	);
 }
+
+// Register Image Server
+$app->get('/ImageData/{Id}', function (Request $request, Response $response) use ($endpointDatabase) {
+	$row = $endpointDatabase->queryFirstRow("SELECT * FROM ImageData WHERE Id = ##s",  $request->getAttribute('Id'));
+	return $response->write($row["Data"])->withHeader("Content-Type", $row["MimeType"]);
+});
 
 $app->run();
 
