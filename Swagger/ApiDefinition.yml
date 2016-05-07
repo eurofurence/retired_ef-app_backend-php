@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.7
+  version: 0.0.8
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -123,7 +123,20 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Announcement'                  
+              $ref: '#/definitions/Announcement'
+              
+  /Dealer:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Dealer'                                    
 
 parameters:
   deltaSinceDateTimeUtc:
@@ -460,3 +473,61 @@ definitions:
       Author: Luchs
       Title: Announcements ready for testing
       Content: The announcements endpoint is now available for developers to test. Thank you for any feedback! :)
+      
+      
+  Dealer:
+    type: object
+    allOf:
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        RegistrationNumber:
+          type: integer
+        AttendeeNickname:
+          type: string
+        DisplayName:
+          type: string
+        ShortDescription:
+          type: string
+        AboutTheArtistText:
+          type: string
+        AboutTheartText:
+          type: string
+        WebsiteUri:
+          type: string
+        ArtPreviewCaption:
+          type: string
+        ArtistThumbnailImageId:
+          type: string
+          format: uuid
+        ArtistImageId:
+          type: string
+          format: uuid
+        ArtPreviewImageId:
+          type: string
+          format: uuid
+      required:
+      - RegistrationNumber
+      - AttendeeNickname
+      - DisplayName
+      - ShortDescription
+      - AboutTheArtistText
+      - AboutTheartText
+    example:
+      Id: 7bedb6b3-1420-11e6-862f-50e54943cb1d
+      LastChangeDateTimeUtc: 2016-05-01T00:00:00Z
+      RegistrationNumber: 73
+      AttendeeNickname: Henrieke
+      DisplayName: Henrieke & Karopur
+      ShortDescription: Cartoon animals!
+      AboutTheArtistText:
+        Henrieke is a professional comic artist and illustrator from the Netherlands. Her cartoons can be found in magazines, zoos and at EF! Karpour is known for making ridiculously cute drawings and every now and then builds fursuits together with Henrieke.
+      AboutTheArtText:
+        At the table there will be merch like embroidered patches, fursuit props and stickers. Don't forget to check out the folder with art prints and original drawings! Might occasionally do commissions on site.
+        Henrieke's art book is available at the Black Paw stand in the Dealer's Den.
+      WebsiteUri: http://www.furaffinity.net/user/henrieke/
+      ArtPreviewCaption: 
+        The Art Of Henrieke' book is available at the Black Paw stand in the Dealer's Den.
+      ArtistThumbnailImageId:	892579be-3da8-44c0-8c0b-7024ee48b0a6
+      ArtistImageId: 5d47c52a-8bd5-4f88-a034-702473e6aec6
+      ArtPreviewImageId: 88081c6f-f652-4c6e-9feb-5c573087908c
