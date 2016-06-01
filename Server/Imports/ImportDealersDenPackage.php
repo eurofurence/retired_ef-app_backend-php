@@ -18,7 +18,7 @@ $database = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB
 $database->throw_exception_on_error = true;
 $database->error_handler = false;
 
-$zipArchiveLocation = "/temp/EF21.zip";
+$zipArchiveLocation = "/temp/EF22.zip";
 
 $zipContentsQueryable = getZipContentsAsQueryable($zipArchiveLocation);
 $csvEntry = $zipContentsQueryable->where(function($v) { return endsWith($v["name"], "csv"); })->single();
