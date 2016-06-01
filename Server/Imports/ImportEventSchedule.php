@@ -1,5 +1,11 @@
 <?php
 
+$fileName = isset($argv[1])? $argv[1] : "/temp/efschedule.csv";
+echo "Trying to import from file: " . $fileName ."\n";
+if (!file_exists($fileName)) die("File dies not exist: " . $fileName . "\n");
+
+// ----------------
+
 define('ROOT_PATH', getcwd() . '/');
 define('SHARED_PATH', ROOT_PATH . '../Shared/');
 define('VENDOR_PATH', SHARED_PATH . './vendor/');
@@ -18,7 +24,7 @@ $database = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB
 $database->throw_exception_on_error = true;
 $database->error_handler = false;
 
-$csv = new parseCSV('/temp/efschedule.csv');
+$csv = new parseCSV($fileName);
 $eventQuery = Enumerable::from($csv->data);
 
 try {
