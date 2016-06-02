@@ -15,7 +15,7 @@ use Slim\Http\Stream;
 $endpointDatabase = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB_CHARSET);
 $endpointDatabase->param_char = "##";
 $endpointConfiguration = $endpointDatabase->query("SELECT * FROM EndpointConfiguration");
-$endpointEntities = $endpointDatabase->query("SELECT * FROM EndpointEntity");
+$endpointEntities = $endpointDatabase->query("SELECT Id, Name, TableName, SelectFields, DATE_FORMAT(DeltaStartDateTimeUtc, '%Y-%m-%dT%TZ') AS DeltaStartDateTimeUtc FROM EndpointEntity");
 
 $app = new \Slim\App([
     'settings' => [
