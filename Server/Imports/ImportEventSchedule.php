@@ -47,7 +47,6 @@ try {
     );
         
     $dbConferenceTracks = Enumerable::from($database->query("SELECT * FROM EventConferenceTrack WHERE IsDeleted = 0"));
-    $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom WHERE IsDeleted = 0"));
 
     $importConferenceTracks->each(function($iItem) use ($dbConferenceTracks, $database) {
         $dbItem = $dbConferenceTracks->where(function($a) use ($iItem) { return $a["Name"] == $iItem; })->singleOrDefault();
@@ -85,9 +84,12 @@ try {
                     "IsDeleted" => 1
             ), "Id=%s", $a["Id"]);
         });
+    $dbConferenceTracks = Enumerable::from($database->query("SELECT * FROM EventConferenceTrack WHERE IsDeleted = 0"));
         
         
     echo "\n\nImporting Conference Rooms\n";
+    
+    $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom WHERE IsDeleted = 0"));
 
     $importConferenceRooms->each(function($iItem) use ($dbConferenceRooms, $database) {
         $dbItem = $dbConferenceRooms->where(function($a) use ($iItem) { return $a["Name"] == $iItem; })->singleOrDefault();
@@ -124,6 +126,8 @@ try {
                 "IsDeleted" => 1
         ), "Id=%s", $a["Id"]);
     });
+    
+   $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom WHERE IsDeleted = 0"));
         
         
     echo "\n\n";
@@ -163,6 +167,7 @@ try {
         }
     });
 
+    $dbConferenceDays = Enumerable::from($database->query("SELECT * FROM EventConferenceDay WHERE IsDeleted = 0"));  
 
     /* Events */
     echo "\n\nImporting Events\n";
@@ -181,6 +186,23 @@ try {
             $dbConferenceTrack = $dbConferenceTracks->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_track"]; })->singleOrDefault();
             $dbConferenceDay = $dbConferenceDays->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_day_name"]; })->singleOrDefault();
             $dbConferenceRoom = $dbConferenceRooms->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_room"]; })->singleOrDefault();
+var_dump( array(
+                    "Id" => $database->sqleval("uuid()"),
+                    "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
+                    "IsDeleted" => "0",
+                    "SourceEventId" => $iItem["event_id"],
+                    "Slug" => $iItem["slug"],
+                    "ConferenceTrackId" => $dbConferenceTrack["Id"],
+                    "Title" => $iItem["title"],
+                    "ConferenceDayId" => $dbConferenceDay["Id"],
+                    "Abstract" => $iItem["abstract"],
+                    "Description" => $iItem["description"],
+                    "StartTime" => $iItem["start_time"],
+                    "EndTime" => $iItem["end_time"],
+                    "Duration" => $iItem["duration"],
+                    "ConferenceRoomId" => $dbConferenceRoom["Id"],
+                    "PanelHosts" => $iItem["pannel_hosts"]
+ ));
             
             $database->insert("EventEntry", array(
                     "Id" => $database->sqleval("uuid()"),

@@ -44,6 +44,8 @@ try {
     $database->startTransaction();
     $database->query("DELETE FROM Info");
     $database->query("DELETE FROM InfoGroup");
+    $database->query("UPDATE EndpointEntity SET DeltaStartDateTimeUtc = utc_timestamp() WHERE TableName = 'Info';");
+    $database->query("UPDATE EndpointEntity SET DeltaStartDateTimeUtc = utc_timestamp() WHERE TableName = 'InfoGroup';");
     
     foreach($groupMatches[1] as $id => $group)  {
 
