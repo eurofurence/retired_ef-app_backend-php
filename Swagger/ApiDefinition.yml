@@ -1,5 +1,4 @@
 swagger: '2.0'
-host: eurofurencewebapi.azurewebsites.net
 consumes:
   - application/json
 produces:
