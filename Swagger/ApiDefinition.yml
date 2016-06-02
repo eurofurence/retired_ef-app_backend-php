@@ -351,6 +351,9 @@ definitions:
       LastChangeDateTimeUtc:
         type: string
         format: date-time
+      DeltaStartDateTimeUtc:
+        type: string
+        format: date-time
       Count:
         type: number
         description: Number of records (including deleted ones) in the table.
