@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.8
+  version: 0.0.9
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
