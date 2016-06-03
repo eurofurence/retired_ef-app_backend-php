@@ -1,11 +1,10 @@
 swagger: '2.0'
-host: eurofurencewebapi.azurewebsites.net
 consumes:
   - application/json
 produces:
   - application/json
 info:
-  version: 0.0.8
+  version: 0.0.9
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -357,6 +356,9 @@ definitions:
       TableName:
         type: string
       LastChangeDateTimeUtc:
+        type: string
+        format: date-time
+      DeltaStartDateTimeUtc:
         type: string
         format: date-time
       Count:
