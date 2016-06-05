@@ -186,23 +186,8 @@ try {
             $dbConferenceTrack = $dbConferenceTracks->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_track"]; })->singleOrDefault();
             $dbConferenceDay = $dbConferenceDays->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_day_name"]; })->singleOrDefault();
             $dbConferenceRoom = $dbConferenceRooms->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_room"]; })->singleOrDefault();
-var_dump( array(
-                    "Id" => $database->sqleval("uuid()"),
-                    "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                    "IsDeleted" => "0",
-                    "SourceEventId" => $iItem["event_id"],
-                    "Slug" => $iItem["slug"],
-                    "ConferenceTrackId" => $dbConferenceTrack["Id"],
-                    "Title" => $iItem["title"],
-                    "ConferenceDayId" => $dbConferenceDay["Id"],
-                    "Abstract" => $iItem["abstract"],
-                    "Description" => $iItem["description"],
-                    "StartTime" => $iItem["start_time"],
-                    "EndTime" => $iItem["end_time"],
-                    "Duration" => $iItem["duration"],
-                    "ConferenceRoomId" => $dbConferenceRoom["Id"],
-                    "PanelHosts" => $iItem["pannel_hosts"]
- ));
+
+            $parts = explode("–", $iItem["title"]);
             
             $database->insert("EventEntry", array(
                     "Id" => $database->sqleval("uuid()"),
@@ -211,7 +196,8 @@ var_dump( array(
                     "SourceEventId" => $iItem["event_id"],
                     "Slug" => $iItem["slug"],
                     "ConferenceTrackId" => $dbConferenceTrack["Id"],
-                    "Title" => $iItem["title"],
+                    "Title" => trim($parts[0]),
+                    "SubTitle" => sizeof($parts) == 2 ? trim($parts[1]) : "",
                     "ConferenceDayId" => $dbConferenceDay["Id"],
                     "Abstract" => $iItem["abstract"],
                     "Description" => $iItem["description"],
@@ -219,7 +205,8 @@ var_dump( array(
                     "EndTime" => $iItem["end_time"],
                     "Duration" => $iItem["duration"],
                     "ConferenceRoomId" => $dbConferenceRoom["Id"],
-                    "PanelHosts" => $iItem["pannel_hosts"]
+                    "PanelHosts" => $iItem["pannel_hosts"],
+                    "IsDeviatingFromConBook" => "0"
             ));
         } else {
             echo "  Existing: " .  $iItem["event_id"] ."\n";
