@@ -27,6 +27,51 @@ $database->error_handler = false;
 $csv = new parseCSV($fileName);
 $eventQuery = Enumerable::from($csv->data);
 
+function fixConferenceDayName($name) {
+    $name = str_replace("Mon - ", "", $name);
+    $name = str_replace("Tue - ", "", $name);
+    $name = str_replace("Wed - ", "", $name);
+    $name = str_replace("Thu - ", "", $name);
+    $name = str_replace("Fri - ", "", $name);
+    $name = str_replace("Sat - ", "", $name);
+    $name = str_replace("Sun - ", "", $name);
+    return $name;
+}
+
+function patch($importEntity, $existingEntity, $mapping) {
+    $result = array();
+    $isModified = false;
+        
+    if (isset($existingEntity)) {
+        $result["Id"] = $existingEntity["Id"];
+        if ($existingEntity["IsDeleted"] == 1) $isModified = true;
+        echo "  Patching existing id=".$result["Id"]."\n";
+    } else {
+        $isModified = true;
+        $result["Id"] = GUID();
+        echo "  Creating new id=".$result["Id"]."\n";
+    }
+    $result["IsDeleted"] = 0;
+    
+    
+    foreach($mapping as $iKey => $eKey) {
+        if (isset($existingEntity) && isset($existingEntity[$eKey]) && $existingEntity[$eKey] == $importEntity[$iKey]) continue;
+        $result[$eKey] = $importEntity[$iKey]; 
+        echo "  Id=".$result["Id"].", [".$eKey."] changed to: ".$result[$eKey]."\n";
+        $isModified = true;
+    }
+    
+    if ($isModified) {
+        $result["LastChangeDateTimeUtc"] = DB::sqleval("utc_timestamp()");
+        echo "  Touching LastChangeDateTimeUtc of Id=".$result["Id"]."\n";
+    } else {
+        echo "  No changes on Id=".$result["Id"]."\n";
+    }
+    
+    if (!$isModified) return null;
+    return $result;
+}
+
 try {
     
     $database->startTransaction();
@@ -35,40 +80,29 @@ try {
     echo "Importing Conference Tracks\n";
 
     $importConferenceTracks = Enumerable::from($eventQuery
-        ->select(function($a) { return $a["conference_track"]; })
+        ->select('$v["conference_track"]')
         ->distinct()
         ->toList()
     );
 
     $importConferenceRooms = Enumerable::from($eventQuery
-        ->select(function($a) { return $a["conference_room"]; })
+        ->select('$v["conference_room"]')
         ->distinct()
         ->toList()
     );
         
-    $dbConferenceTracks = Enumerable::from($database->query("SELECT * FROM EventConferenceTrack WHERE IsDeleted = 0"));
+    $dbConferenceTracks = Enumerable::from($database->query("SELECT * FROM EventConferenceTrack"));
 
     $importConferenceTracks->each(function($iItem) use ($dbConferenceTracks, $database) {
         $dbItem = $dbConferenceTracks->where(function($a) use ($iItem) { return $a["Name"] == $iItem; })->singleOrDefault();
+        $patchedItem = patch(array("Name" => $iItem), $dbItem, array("Name" => "Name"));
         
-        if (!$dbItem) {
-            echo("  Importing " . $iItem . "\n");
-            
-            $database->insert("EventConferenceTrack", array(
-                "Id" => $database->sqleval("uuid()"),
-                "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                "IsDeleted" => "0",
-                "Name" => $iItem			
-            ));
-        } else {
-            echo "  Existing: " . $iItem ." (" .$dbItem["Id"].")\n";
-            
-            if ($dbItem["IsDeleted"] == 1) {
-                $database->update("EventConferenceTrack", array(
-                        "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                        "IsDeleted" => 0
-                ), "Id=%s", $dbItem["Id"]);
-            }
+        if ($patchedItem) {
+            if (!$dbItem) {
+                $database->insert("EventConferenceTrack", $patchedItem);
+            } else {
+                $database->update("EventConferenceTrack", $patchedItem, "Id=%s", $dbItem["Id"]);
+            } 
         }
     });
 
@@ -84,34 +118,24 @@ try {
                     "IsDeleted" => 1
             ), "Id=%s", $a["Id"]);
         });
+        
     $dbConferenceTracks = Enumerable::from($database->query("SELECT * FROM EventConferenceTrack WHERE IsDeleted = 0"));
         
         
     echo "\n\nImporting Conference Rooms\n";
     
-    $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom WHERE IsDeleted = 0"));
+    $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom"));
 
     $importConferenceRooms->each(function($iItem) use ($dbConferenceRooms, $database) {
         $dbItem = $dbConferenceRooms->where(function($a) use ($iItem) { return $a["Name"] == $iItem; })->singleOrDefault();
+        $patchedItem = patch(array("Name" => $iItem), $dbItem, array("Name" => "Name"));
 
-        if (!$dbItem) {
-            echo("  Importing " . $iItem . "\n");
-
-            $database->insert("EventConferenceRoom", array(
-                    "Id" => $database->sqleval("uuid()"),
-                    "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                    "IsDeleted" => "0",
-                    "Name" => $iItem
-            ));
-        } else {
-            echo "  Existing: " . $iItem ." (" .$dbItem["Id"].")\n";
-
-            if ($dbItem["IsDeleted"] == 1) {
-                $database->update("EventConferenceRoom", array(
-                        "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                        "IsDeleted" => 0
-                ), "Id=%s", $dbItem["Id"]);
-            }
+        if ($patchedItem) {
+            if (!$dbItem) {
+                $database->insert("EventConferenceRoom", $patchedItem);
+            } else {
+                $database->update("EventConferenceRoom", $patchedItem, "Id=%s", $dbItem["Id"]);
+            } 
         }
     });
 
@@ -145,25 +169,25 @@ try {
             ->toList()
         );
 
-    $dbConferenceDays = Enumerable::from($database->query("SELECT * FROM EventConferenceDay WHERE IsDeleted = 0"));  
+    $dbConferenceDays = Enumerable::from($database->query("SELECT * FROM EventConferenceDay"));  
 
 
     $importConferenceDays->each(function($iItem) use ($dbConferenceDays, $database) {
         $date = date_format(date_create($iItem["day"]), "Y-m-d");
-        $dbItem = $dbConferenceDays->where(function($a) use ($date) { return $a["Date"] == $date; })->singleOrDefault();
+        $iItem["date"] = $date;
+        $iItem["name"] = fixConferenceDayName($iItem["name"]);
 
-        if (!$dbItem) {
-            echo("  Importing " . $date . "\n");
-            
-            $database->insert("EventConferenceDay", array(
-                    "Id" => $database->sqleval("uuid()"),
-                    "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                    "IsDeleted" => "0",
-                    "Date" => $date,
-                    "Name" => $iItem["name"]
-            ));
-        } else {
-            echo "  Existing: " . $date ." (" .$dbItem["Id"].")\n";
+        
+        $dbItem = $dbConferenceDays->where(function($a) use ($iItem) { return $a["Date"] == $iItem["date"]; })->singleOrDefault();
+        
+        $patchedItem = patch($iItem, $dbItem, array("date" => "Date", "name" => "Name"));
+
+        if ($patchedItem) {
+            if (!$dbItem) {
+                $database->insert("EventConferenceDay", $patchedItem);
+            } else {
+                $database->update("EventConferenceDay", $patchedItem, "Id=%s", $dbItem["Id"]);
+            } 
         }
     });
 
@@ -178,38 +202,45 @@ try {
     $importEntries->each(function($iItem) use ($dbEntries, $database, $dbConferenceTracks, $dbConferenceDays, $dbConferenceRooms) {
         
         $dbItem = $dbEntries->where(function($a) use ($iItem) { return $a["SourceEventId"] == $iItem["event_id"]; })->singleOrDefault();
+        $iItem["conference_day_name"] = fixConferenceDayName($iItem["conference_day_name"]);
 
-        if (!$dbItem) {
-            echo("  Importing " . $iItem["event_id"] . "\n");
-
+        $conferenceTrack = $dbConferenceTracks->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_track"]; })->singleOrDefault();
+        $conferenceDay = $dbConferenceDays->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_day_name"]; })->singleOrDefault();
+        $conferenceRoom = $dbConferenceRooms->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_room"]; })->singleOrDefault();
+        
+        $iItem["conference_track_id"] = isset($conferenceTrack) ? $conferenceTrack["Id"] : "";
+        $iItem["conference_day_id"] = isset($conferenceDay) ? $conferenceDay["Id"] : "";
+        $iItem["conference_room_id"] = isset($conferenceRoom) ? $conferenceRoom["Id"] : "";
+        
+        $parts = explode("–", $iItem["title"]);
+        $iItem["title"] = $parts[0];
+        $iItem["subtitle"] = sizeof($parts) == 2 ? trim($parts[1]) : "";
+        $iItem["is_deviating_from_conbook"] = 0;
+        
+        
+        $patchedItem = patch($iItem, $dbItem, array(
+            "event_id" => "SourceEventId",
+            "slug" => "Slug",
+            "conference_track_id" => "ConferenceTrackId",
+            "conference_day_id" => "ConferenceDayId",
+            "conference_room_id" => "ConferenceRoomId",
+            "title" => "Title",
+            "subtitle" => "SubTitle",
+            "abstract" => "Abstract",
+            "description" => "Description",
+            "start_time" => "StartTime",
+            "end_time" => "EndTime",
+            "duration" => "Duration",
+            "pannel_hosts" => "PanelHosts",
+            "is_deviating_from_conbook" => "IsDeviatingFromConBook"
+        ));
             
-            $dbConferenceTrack = $dbConferenceTracks->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_track"]; })->singleOrDefault();
-            $dbConferenceDay = $dbConferenceDays->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_day_name"]; })->singleOrDefault();
-            $dbConferenceRoom = $dbConferenceRooms->where(function($a) use ($iItem) { return $a["Name"] == $iItem["conference_room"]; })->singleOrDefault();
-
-            $parts = explode("–", $iItem["title"]);
-            
-            $database->insert("EventEntry", array(
-                    "Id" => $database->sqleval("uuid()"),
-                    "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
-                    "IsDeleted" => "0",
-                    "SourceEventId" => $iItem["event_id"],
-                    "Slug" => $iItem["slug"],
-                    "ConferenceTrackId" => $dbConferenceTrack["Id"],
-                    "Title" => trim($parts[0]),
-                    "SubTitle" => sizeof($parts) == 2 ? trim($parts[1]) : "",
-                    "ConferenceDayId" => $dbConferenceDay["Id"],
-                    "Abstract" => $iItem["abstract"],
-                    "Description" => $iItem["description"],
-                    "StartTime" => $iItem["start_time"],
-                    "EndTime" => $iItem["end_time"],
-                    "Duration" => $iItem["duration"],
-                    "ConferenceRoomId" => $dbConferenceRoom["Id"],
-                    "PanelHosts" => $iItem["pannel_hosts"],
-                    "IsDeviatingFromConBook" => "0"
-            ));
-        } else {
-            echo "  Existing: " .  $iItem["event_id"] ."\n";
+        if ($patchedItem) {
+            if (!$dbItem) {
+                $database->insert("EventEntry", $patchedItem);
+            } else {
+                $database->update("EventEntry", $patchedItem, "Id=%s", $dbItem["Id"]);
+            } 
         }
     });
 
