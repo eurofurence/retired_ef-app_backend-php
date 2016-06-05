@@ -1,11 +1,10 @@
 swagger: '2.0'
-host: eurofurencewebapi.azurewebsites.net
 consumes:
   - application/json
 produces:
   - application/json
 info:
-  version: 0.0.8
+  version: 0.0.9
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -196,6 +195,8 @@ definitions:
           type: string
         Title:
           type: string
+        SubTitle:
+          type: string
         ConferenceTrackId:
           type: string
           format: uuid
@@ -217,10 +218,19 @@ definitions:
           type: string
         PanelHosts:
           type: string
+        IsDeviatingFromConBook:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Numeric flag that, if set to "1", indicates that the
+            record is differing from the original schedule in the con book.
+            This usually indicates that the event was rescheduled after the
+            con book was printed.       
       required:
         - SourceEventId
         - Slug
         - Title
+        - SubTitle
         - ConferenceTrackId
         - Abstract
         - Description
@@ -230,13 +240,15 @@ definitions:
         - Duration
         - ConferenceRoomId
         - PanelHosts
+        - IsDeviatingFromConBook
     example:
       Id: 550e8400-e29b-11d4-a716-446655440000
       LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
       IsDeleted: 0
       SourceEventId: 123
       Slug: artist_lounge_tue
-      Title: Artist's Lounge - Let's be creative together!
+      Title: Artist's Lounge
+      SubTitle: Let's be creative together!
       ConferenceTrackId: e6ea7350-c2c9-11e5-855c-00155d17ae4a
       ConferenceDayId: 55c7f0dd-c46f-11e5-af20-00155d17ae4a
       ConferenceRoomId: 15c7f0dd-c46f-11e5-af20-00155d17ae4b
@@ -246,6 +258,7 @@ definitions:
       EndTime: '02:00:00'
       Duration: '12:00:00'
       PanelHosts: Akulatraxas
+      IsDeviatingFromConBook: 0
           
   EventConferenceDay:
     type: object
