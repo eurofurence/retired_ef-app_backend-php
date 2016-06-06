@@ -1,11 +1,4 @@
 <?php
-
-$fileName = isset($argv[1])? $argv[1] : "/temp/EF22.zip";
-echo "Trying to import from file: " . $fileName ."\n";
-if (!file_exists($fileName)) die("File dies not exist: " . $fileName . "\n");
-
-// ----------------
-
 define('ROOT_PATH', getcwd() . '/');
 define('SHARED_PATH', ROOT_PATH . '../Shared/');
 define('VENDOR_PATH', SHARED_PATH . './vendor/');
@@ -19,6 +12,11 @@ require VENDOR_PATH . 'parsecsv/php-parsecsv/parsecsv.lib.php';
 use \YaLinqo\Enumerable;
 
 set_error_handler("exceptionErrorHandler", E_ALL);
+
+
+$fileName = isset($argv[1])? $argv[1] : "/temp/EF22.zip";
+Log::info("Trying to import from file: " . $fileName);
+if (!file_exists($fileName)) { Log::error("File dies not exist: " . $fileName); die(); };
 
 $database = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB_CHARSET);
 $database->throw_exception_on_error = true;
@@ -47,17 +45,17 @@ try {
         ->where(function($row) use ($csvContentsQueryable) { return $csvContentsQueryable->all('$v["Reg No."] != '.$row['RegistrationNumber']); })
         ->toArray();
         
-    echo sprintf("Soft deleting old records on '%s'\n", 'dealer');
+    Log::info(sprintf("Soft deleting old records on '%s'", 'dealer'));
 
     from($oldRecords)->each(function($row) use($database) {
-        echo sprintf("Deleting %s\n", $row['RegistrationNumber']);
+        Log::info(sprintf("Deleting %s", $row['RegistrationNumber']));
         $database->update("dealer", array(
                 "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
                 "IsDeleted" => 1
         ), "Id=%s", $row["Id"]);
     });
 
-    echo sprintf("Inserting / updating records on '%s'\n", 'dealer');
+    Log::info(sprintf("Inserting / updating records on '%s'", 'dealer'));
 
     from($csvContentsQueryable)->each(function($record) use($database, $existingRecordsQueryable, $zipArchiveLocation) {
         $row = array(
@@ -123,23 +121,23 @@ try {
         $existingRow = from($existingRecordsQueryable)->where('$v["RegistrationNumber"] == ' . $row['RegistrationNumber'])->singleOrDefault();
             
         if ($existingRow) {
-            echo sprintf("Updating %s\n", $row['RegistrationNumber']);
+            Log::info(sprintf("Updating %s", $row['RegistrationNumber']));
             $database->update("dealer", $row, "Id=%s", $existingRow["Id"]);
         } else {
             $row["Id"] = $database->sqleval("uuid()");
-            echo sprintf("Inserting %s\n", $row['RegistrationNumber']);
+            Log::info(sprintf("Inserting %s", $row['RegistrationNumber']));
             $database->insert("dealer", $row);
         }
     });
     
-    echo "Commiting changes to database\n";
+    Log::info("Commiting changes to database");
     $database->commit();
     
 } catch (Exception $e) {
     
     var_dump($e->getMessage());
     
-    echo "Rolling back changes to database\n";
+    Log::info("Rolling back changes to database");
     $database->rollback();
     
 }

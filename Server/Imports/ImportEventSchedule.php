@@ -1,11 +1,4 @@
 <?php
-
-$fileName = isset($argv[1])? $argv[1] : "/temp/efschedule.csv";
-echo "Trying to import from file: " . $fileName ."\n";
-if (!file_exists($fileName)) die("File dies not exist: " . $fileName . "\n");
-
-// ----------------
-
 define('ROOT_PATH', getcwd() . '/');
 define('SHARED_PATH', ROOT_PATH . '../Shared/');
 define('VENDOR_PATH', SHARED_PATH . './vendor/');
@@ -19,6 +12,11 @@ require VENDOR_PATH . 'parsecsv/php-parsecsv/parsecsv.lib.php';
 use \YaLinqo\Enumerable;
 
 set_error_handler("exceptionErrorHandler", E_ALL);
+
+
+$fileName = isset($argv[1])? $argv[1] : "/temp/efschedule.csv";
+Log::info("Trying to import from file: " . $fileName);
+if (!file_exists($fileName)) { Log::error("File dies not exist: " . $fileName); die(); };
 
 $database = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB_CHARSET);
 $database->throw_exception_on_error = true;
@@ -45,11 +43,11 @@ function patch($importEntity, $existingEntity, $mapping) {
     if (isset($existingEntity)) {
         $result["Id"] = $existingEntity["Id"];
         if ($existingEntity["IsDeleted"] == 1) $isModified = true;
-        echo "  Patching existing id=".$result["Id"]."\n";
+        Log::info("  Patching existing id=".$result["Id"]);
     } else {
         $isModified = true;
         $result["Id"] = GUID();
-        echo "  Creating new id=".$result["Id"]."\n";
+        Log::info("  Creating new id=".$result["Id"]);
     }
     $result["IsDeleted"] = 0;
     
@@ -57,15 +55,15 @@ function patch($importEntity, $existingEntity, $mapping) {
     foreach($mapping as $iKey => $eKey) {
         if (isset($existingEntity) && isset($existingEntity[$eKey]) && $existingEntity[$eKey] == $importEntity[$iKey]) continue;
         $result[$eKey] = $importEntity[$iKey]; 
-        echo "  Id=".$result["Id"].", [".$eKey."] changed to: ".$result[$eKey]."\n";
+        Log::info("  Id=".$result["Id"].", [".$eKey."] changed to: ".$result[$eKey]);
         $isModified = true;
     }
     
     if ($isModified) {
         $result["LastChangeDateTimeUtc"] = DB::sqleval("utc_timestamp()");
-        echo "  Touching LastChangeDateTimeUtc of Id=".$result["Id"]."\n";
+        Log::info("  Touching LastChangeDateTimeUtc of Id=".$result["Id"]);
     } else {
-        echo "  No changes on Id=".$result["Id"]."\n";
+        Log::info( "  No changes on Id=".$result["Id"]);
     }
     
     if (!$isModified) return null;
@@ -77,7 +75,7 @@ try {
     $database->startTransaction();
 
     /* Import Conference Tracks */
-    echo "Importing Conference Tracks\n";
+    Log::info("Importing Conference Tracks");
 
     $importConferenceTracks = Enumerable::from($eventQuery
         ->select('$v["conference_track"]')
@@ -122,7 +120,7 @@ try {
     $dbConferenceTracks = Enumerable::from($database->query("SELECT * FROM EventConferenceTrack WHERE IsDeleted = 0"));
         
         
-    echo "\n\nImporting Conference Rooms\n";
+    Log::info("Importing Conference Rooms");
     
     $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom"));
 
@@ -151,13 +149,11 @@ try {
         ), "Id=%s", $a["Id"]);
     });
     
-   $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom WHERE IsDeleted = 0"));
+    $dbConferenceRooms = Enumerable::from($database->query("SELECT * FROM EventConferenceRoom WHERE IsDeleted = 0"));
         
-        
-    echo "\n\n";
 
     /* Events */
-    echo "Importing Conference Days\n";
+    Log::info("Importing Conference Days");
 
     $importConferenceDays = Enumerable::from($eventQuery
             ->select(function($a) { return $a["conference_day"]; })
@@ -194,7 +190,7 @@ try {
     $dbConferenceDays = Enumerable::from($database->query("SELECT * FROM EventConferenceDay WHERE IsDeleted = 0"));  
 
     /* Events */
-    echo "\n\nImporting Events\n";
+    Log::info("Importing Events");
 
     $dbEntries= Enumerable::from($database->query("SELECT * FROM EventEntry WHERE IsDeleted = 0"));
     $importEntries = Enumerable::from($eventQuery->toList());
@@ -244,14 +240,14 @@ try {
         }
     });
 
-    echo "Commiting changes to database\n";
+    Log::info("Commiting changes to database");
     $database->commit();
     
 } catch (Exception $e) {
     
     var_dump($e->getMessage());
     
-    echo "Rolling back changes to database\n";
+    Log::error("Rolling back changes to database");
     $database->rollback();
 
 }

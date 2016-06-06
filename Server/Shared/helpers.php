@@ -1,5 +1,16 @@
 <?php
 
+class Log {
+        public static function error($message) {
+                fwrite(STDERR, date(DATE_RFC822)." ".$message."\n");
+        }
+        public static function info($message) {
+                fwrite(STDOUT, date(DATE_RFC822)." ".$message."\n");
+        }
+}
+
+
+
 function startsWith($haystack, $needle)
 {
      $length = strlen($needle);

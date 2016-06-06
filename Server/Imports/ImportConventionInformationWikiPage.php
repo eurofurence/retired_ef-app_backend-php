@@ -1,11 +1,4 @@
 <?php
-
-$fileName = isset($argv[1])? $argv[1] : "/temp/wiki.txt";
-echo "Trying to import from file: " . $fileName ."\n";
-if (!file_exists($fileName)) die("File dies not exist: " . $fileName . "\n");
-
-// ----------------
-
 define('ROOT_PATH', getcwd() . '/');
 define('SHARED_PATH', ROOT_PATH . '../Shared/');
 define('VENDOR_PATH', SHARED_PATH . './vendor/');
@@ -19,6 +12,11 @@ require VENDOR_PATH . 'parsecsv/php-parsecsv/parsecsv.lib.php';
 use \YaLinqo\Enumerable;
 
 set_error_handler("exceptionErrorHandler", E_ALL);
+
+
+$fileName = isset($argv[1])? $argv[1] : "/temp/wiki.txt";
+Log::info("Trying to import from file: " . $fileName);
+if (!file_exists($fileName)) { Log::error("File dies not exist: " . $fileName); die(); };
 
 $database = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB_CHARSET);
 $database->throw_exception_on_error = true;
@@ -52,7 +50,7 @@ try {
         $groupId = GUID();
         $parts = explode("|", trim($group),2);
         
-        echo sprintf("Importing Group %s\n", trim($parts[0]));
+        Log::info(sprintf("Importing Group %s", trim($parts[0])));
         
         $database->insert("InfoGroup", array(
                 "Id" => $groupId,
@@ -67,7 +65,7 @@ try {
         preg_match_all($regexEntry, $groupMatches[2][$id], $entryMatches);
         $epos = 0;
         foreach($entryMatches[1] as $entryId => $entry)  {
-            echo sprintf("  Importing Entry %s\n", trim($entry));
+            Log::info(sprintf("  Importing Entry %s", trim($entry)));
             
             $database->insert("Info", array(
                     "Id" => GUID(),
@@ -83,14 +81,14 @@ try {
         }
     }
 
-    echo "Commiting changes to database\n";
+    Log::info("Commiting changes to database");
     $database->commit();
     
 } catch (Exception $e) {
     
     var_dump($e->getMessage());
     
-    echo "Rolling back changes to database\n";
+    Log::error("Rolling back changes to database");
     $database->rollback();
     
 }
