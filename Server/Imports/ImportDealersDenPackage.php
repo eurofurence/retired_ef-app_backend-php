@@ -67,7 +67,7 @@ try {
             "ShortDescription" => $record["Short Description"],
             "AboutTheArtistText" => $record["About the Artist"],
             "AboutTheArtText" => $record["About the Art"],
-            "WebsiteUri" => $record["Website"],
+            "WebsiteUri" => $record["Website Reg"],
             "ArtPreviewCaption" => $record["Art Preview Caption"]
         );
         
@@ -105,7 +105,7 @@ try {
         
         // Art Preview Image
         $artPreviewImageEntry = from($zipContentsQueryable)
-            ->where(function($v) use($row) { return (strpos($v["name"], sprintf("artist_%s.", $row['RegistrationNumber'])) !== false); })
+            ->where(function($v) use($row) { return (strpos($v["name"], sprintf("art_%s.", $row['RegistrationNumber'])) !== false); })
             ->singleOrDefault();
 
         $artPrevieyImageKey = sprintf("dealer:artPreviewImage[%s]", $row['RegistrationNumber']);

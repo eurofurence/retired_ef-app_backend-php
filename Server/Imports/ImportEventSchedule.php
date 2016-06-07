@@ -43,7 +43,7 @@ function patch($importEntity, $existingEntity, $mapping) {
     if (isset($existingEntity)) {
         $result["Id"] = $existingEntity["Id"];
         if ($existingEntity["IsDeleted"] == 1) $isModified = true;
-        Log::info("  Patching existing id=".$result["Id"]);
+        //Log::info("  Patching existing id=".$result["Id"]);
     } else {
         $isModified = true;
         $result["Id"] = GUID();
@@ -63,7 +63,7 @@ function patch($importEntity, $existingEntity, $mapping) {
         $result["LastChangeDateTimeUtc"] = DB::sqleval("utc_timestamp()");
         Log::info("  Touching LastChangeDateTimeUtc of Id=".$result["Id"]);
     } else {
-        Log::info( "  No changes on Id=".$result["Id"]);
+        //Log::info( "  No changes on Id=".$result["Id"]);
     }
     
     if (!$isModified) return null;
