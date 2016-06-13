@@ -27,7 +27,8 @@ $wikiText = file_get_contents($fileName);
 
 $regexParseContent = "/<WRAP[^>]*>PARSE_START<\/WRAP>(.*)<WRAP[^>]*>PARSE_END<\/WRAP>/si";
 $regexGroup = "/====([^=]+)====(.+?)((?=====)|$)/siu";
-$regexEntry = "/===([^=]+)===.+?<WRAP box>(.+?)<\/WRAP>/si";
+$regexEntry = "/===([^=]+)===.+?<WRAP box>(.+?)<\/WRAP>([^\<]*<WRAP lo>([^\<]+)<\/WRAP>){0,1}/si";
+$regexLinks = "/  \* \[\[([^\|]+)\|([^\]]+)\]\]/si";
 
 preg_match($regexParseContent, $wikiText, $matches);
 $wikiTextToParse = trim($matches[1]);
@@ -63,9 +64,32 @@ try {
         
         $position++;
         preg_match_all($regexEntry, $groupMatches[2][$id], $entryMatches);
+
+
+
         $epos = 0;
         foreach($entryMatches[1] as $entryId => $entry)  {
             Log::info(sprintf("  Importing Entry %s", trim($entry)));
+	   
+            $links = [];
+	    $images = [];
+	    
+	    // Images / Links
+	    if ($entryMatches[4][$entryId] != "") {
+	        preg_match_all($regexLinks, $entryMatches[4][$entryId], $linkMatches);
+		foreach($linkMatches[1] as $linkId => $linkTarget) {
+		    $linkText = $linkMatches[2][$linkId];
+
+		    if (strtolower($linkText) == "image") {
+		        $imageData = file_get_contents($linkTarget);
+			$imageTag = "info:import[" . strtolower($linkTarget) . "]";
+			$newImageId = insertOrUpdateImageByTitle($database, $imageData, $imageTag);
+		        $images[] = $newImageId;
+		    } else {
+		        $links[] = array("Target" => $linkTarget, "Text" => $linkText);
+		    }
+		}
+            }
             
             $database->insert("Info", array(
                     "Id" => GUID(),
@@ -74,14 +98,18 @@ try {
                     "IsDeleted" => "0",
                     "Title" => trim($entry),
                     "Text" => trim($entryMatches[2][$entryId]),
-                    "Position" => $epos
+                    "Position" => $epos,
+		    "ImageIds" => json_encode($images),
+		    "Urls" => json_encode($links)
             ));
+
             
             $epos++;
         }
     }
 
     Log::info("Commiting changes to database");
+
     $database->commit();
     
 } catch (Exception $e) {

@@ -15,7 +15,7 @@ use Slim\Http\Stream;
 $endpointDatabase = new MeekroDB(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, DB_CHARSET);
 $endpointDatabase->param_char = "##";
 $endpointConfiguration = $endpointDatabase->query("SELECT * FROM EndpointConfiguration");
-$endpointEntities = $endpointDatabase->query("SELECT Id, Name, TableName, SelectFields, DATE_FORMAT(DeltaStartDateTimeUtc, '%Y-%m-%dT%TZ') AS DeltaStartDateTimeUtc FROM EndpointEntity");
+$endpointEntities = $endpointDatabase->query("SELECT Id, Name, TableName, SelectFields, DATE_FORMAT(DeltaStartDateTimeUtc, '%Y-%m-%dT%TZ') AS DeltaStartDateTimeUtc, JsonFields FROM EndpointEntity");
 
 $app = new \Slim\App([
     'settings' => [
@@ -46,18 +46,31 @@ foreach($endpointEntities as $id => $entity) {
 	$app->get('/' . $entity["Name"], 
 		function (Request $request, Response $response) use ($endpointDatabase, $entity) {
 			$fields = preg_replace("(date:([^$^,]+))", "DATE_FORMAT(\\1,'%Y-%m-%dT%TZ') AS \\1", $entity["SelectFields"]);
+			$jsonFields = explode(",", $entity["JsonFields"]);
 			$queryBase = "SELECT " . $fields . " FROM ". $entity["TableName"] ." tbl ";
 			
 			$since = isset($_GET["since"]) ? $_GET["since"] : null;
 			$since = substr($since, 0, strlen($since) - (strtoupper($since[strlen($since)-1]) == "Z" ? 1 : 0));
-			
+
+			$result = [];
+
 			if ($since && strtotime($since)) {
 				$queryBase .= " WHERE tbl.LastChangeDateTimeUtc >= ##t ";
-				return $response->withJson($endpointDatabase->query($queryBase, $since));
+				$result = $endpointDatabase->query($queryBase, $since);
 			} else {
 				$queryBase .= " WHERE IsDeleted = 0";
-				return $response->withJson($endpointDatabase->query($queryBase));
+				$result = $endpointDatabase->query($queryBase);
 			}
+			
+			foreach($jsonFields as $field) {
+				if ($field != "") {
+					foreach($result as $rowId => $rowData) {
+						$result[$rowId][$field] = json_decode($result[$rowId][$field]);
+					}
+				}
+			}
+
+			return $response->withJson($result);
 		}
 	);
 	
