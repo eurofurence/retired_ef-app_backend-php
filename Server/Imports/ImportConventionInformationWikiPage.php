@@ -81,10 +81,18 @@ try {
 		    $linkText = $linkMatches[2][$linkId];
 
 		    if (strtolower($linkText) == "image") {
-		        $imageData = file_get_contents($linkTarget);
 			$imageTag = "info:import[" . strtolower($linkTarget) . "]";
-			$newImageId = insertOrUpdateImageByTitle($database, $imageData, $imageTag);
-		        $images[] = $newImageId;
+
+			$existingImageRow = $database->queryFirstRow("SELECT * FROM image WHERE Title=%s", $imageTag);
+			if ($existingImageRow) {
+			    Log::info(sprintf("  Skipping import %s (exists)", $imageTag));
+			    $images[] = $existingImageRow["Id"];
+			} else {
+			    Log::info(sprintf("  Fetching %s (new)", $imageTag));
+		            $imageData = file_get_contents($linkTarget);
+			    $newImageId = insertOrUpdateImageByTitle($database, $imageData, $imageTag);
+		            $images[] = $newImageId;
+			}
 		    } else {
 		        $links[] = array("Target" => $linkTarget, "Text" => $linkText);
 		    }
