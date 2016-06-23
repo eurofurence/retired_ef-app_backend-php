@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.9
+  version: 0.0.10
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -371,6 +371,19 @@ definitions:
       Count:
         type: number
         description: Number of records (including deleted ones) in the table.
+        
+  NamedUrl:
+    type: object
+    properties:
+      Target:
+        type: string
+        description: URL/URI of the resource.
+      Text:
+        type: string
+        description: Text/Description of the resource.
+    example:
+          Target: http://www.eurofurence.org
+          Text: Eurofurence Website    
 
   InfoGroup:
     type: object
@@ -421,7 +434,16 @@ definitions:
         Position:
           type: integer
           description: Numeric order/position of the element (lower number =
-            display first)          
+            display first)
+        ImageIds:
+          type: array
+          items:
+            type: string
+        Urls:
+          type: array
+          items:
+            $ref: '#/definitions/NamedUrl'
+            
     example:
       Id: 34567890-e29b-11d4-a716-446655440000
       LastChangeDateTimeUtc: 2016-01-26T22:24:46Z
