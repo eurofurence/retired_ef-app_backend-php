@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.11
+  version: 0.0.12
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -149,7 +149,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Map'                   
+              $ref: '#/definitions/MapEntity'                   
               
   /MapEntry:
     get:
@@ -539,7 +539,7 @@ definitions:
       Title: Announcements ready for testing
       Content: The announcements endpoint is now available for developers to test. Thank you for any feedback! :)
       
-  Map:
+  MapEntity:
     type: object
     allOf:
     - $ref: '#/definitions/EntityBase'
