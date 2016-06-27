@@ -5,7 +5,7 @@ consumes:
 produces:
   - application/json
 info:
-  version: 0.0.10
+  version: 0.0.11
   title: Eurofurence Mobile Apps Web API
   contact:
     name: Luchs
@@ -137,6 +137,32 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Dealer'                                    
+
+  /Map:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Map'                   
+              
+  /MapEntry:
+    get:
+      description: tbd
+      parameters:
+        - $ref: "#/parameters/deltaSinceDateTimeUtc"
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/MapEntry'                   
 
 parameters:
   deltaSinceDateTimeUtc:
@@ -512,6 +538,74 @@ definitions:
       Author: Luchs
       Title: Announcements ready for testing
       Content: The announcements endpoint is now available for developers to test. Thank you for any feedback! :)
+      
+  Map:
+    type: object
+    allOf:
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        ImageId:
+          type: string
+          format: uuid
+        Description:
+          type: string
+        IsBrowseable:
+          type: number
+          minimum: 0
+          maximum: 1
+      required:
+        - ImageId
+        - Description
+        - IsBrowseable
+        
+  MapEntry:
+    type: object
+    allOf:
+    - $ref: '#/definitions/EntityBase'
+    - type: object
+      properties:
+        MapId:
+          type: string
+          format: uuid
+          description:
+            Id of the Map entity this entry belongs to
+        RelativeX:
+          type: number
+          minimum: 0
+          maximum: 100
+          description:
+            "Relative X position on the map (0-100 scale). To convert to absolute position, use this formula: AbsoluteX = [RelativeX / 100] * [Map.Image.Width]"
+        RelativeY:
+          type: number
+          minimum: 0
+          maximum: 100
+          description:
+            "Relative Y position on the map (0-100 scale). To convert to absolute position, use this formula: AbsoluteY = [RelativeY / 100] * [Map.Image.Height]"          
+        RelativeTapRadius:
+          type: number
+          minimum: 0
+          maximum: 1
+          description:
+            "Radius around the center defined by x/y which should be tap-active for events regarding this map entry. Scale 0-1, relative to Height. To convert to absolute radius, use this formula: AbsoluteTapRadius = RelativeTapradius * [Map.Image.Height]"                            
+        MarkerType:
+          type: string
+          description: "Type of marker. Valid options: 'Dealer'"
+        TargetId:
+          type: string
+          format: uuid
+          description:
+            "Target entity referenced by the marker, e.G. for a marker of type 'Dealer', this would id of the dealer."
+        TargetDescription:
+          type: string
+          description:
+            "Alternative description for marker types that do not reference an entity (or need additional data9, not used yet."
+      required:
+        - MapId
+        - RelativeX
+        - RelativeY
+        - RelativeTapRadius
+        - MarkerType
       
       
   Dealer:
