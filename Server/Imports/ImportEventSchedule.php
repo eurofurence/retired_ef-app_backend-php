@@ -195,6 +195,18 @@ try {
     $dbEntries= Enumerable::from($database->query("SELECT * FROM EventEntry WHERE IsDeleted = 0"));
     $importEntries = Enumerable::from($eventQuery->toList());
 
+    $dbEntries->each(function($dbItem) use ($importEntries, $database) {
+        $importEntry = $importEntries->where('$v["event_id"] == '.$dbItem["SourceEventId"])->singleOrDefault();
+
+	if (!$importEntry) {
+    	   Log::info("Deleting event " . $dbItem["Slug"]);
+           $database->update("EventEntry", array(
+	      "LastChangeDateTimeUtc" => $database->sqleval("utc_timestamp()"),
+	      "IsDeleted" => 1
+           ), "Id=%s", $dbItem["Id"]);
+	}
+    });
+
     $importEntries->each(function($iItem) use ($dbEntries, $database, $dbConferenceTracks, $dbConferenceDays, $dbConferenceRooms) {
         
         $dbItem = $dbEntries->where(function($a) use ($iItem) { return $a["SourceEventId"] == $iItem["event_id"]; })->singleOrDefault();

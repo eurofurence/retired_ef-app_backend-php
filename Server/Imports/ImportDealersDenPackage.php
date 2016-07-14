@@ -108,14 +108,14 @@ try {
             ->where(function($v) use($row) { return (strpos($v["name"], sprintf("art_%s.", $row['RegistrationNumber'])) !== false); })
             ->singleOrDefault();
 
-        $artPrevieyImageKey = sprintf("dealer:artPreviewImage[%s]", $row['RegistrationNumber']);
+        $artPreviewImageKey = sprintf("dealer:artPreviewImage[%s]", $row['RegistrationNumber']);
         
         if (!$artPreviewImageEntry) {
             $row["ArtPreviewImageId"] = null;
-            deleteImageByTitle($database, $artPrevieyImageKey); 
+            deleteImageByTitle($database, $artPreviewImageKey); 
         } else {
             $imageData = getZipContentOfFile($zipArchiveLocation, $artPreviewImageEntry['name']);
-            $row["ArtPreviewImageId"] = insertOrUpdateImageByTitle($database, $imageData, $artPrevieyImageKey);
+            $row["ArtPreviewImageId"] = insertOrUpdateImageByTitle($database, $imageData, $artPreviewImageKey);
         }
 
         $existingRow = from($existingRecordsQueryable)->where('$v["RegistrationNumber"] == ' . $row['RegistrationNumber'])->singleOrDefault();

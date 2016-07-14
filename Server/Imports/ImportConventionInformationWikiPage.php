@@ -27,7 +27,7 @@ $wikiText = file_get_contents($fileName);
 
 $regexParseContent = "/<WRAP[^>]*>PARSE_START<\/WRAP>(.*)<WRAP[^>]*>PARSE_END<\/WRAP>/si";
 $regexGroup = "/====([^=]+)====(.+?)((?=====)|$)/siu";
-$regexEntry = "/===([^=]+)===.+?<WRAP box>(.+?)<\/WRAP>([^\<]*<WRAP lo>([^\<]+)<\/WRAP>){0,1}/si";
+$regexEntry = "/===([^=]+)===.+?<WRAP box[^>]*>(.+?)<\/WRAP>([^\<]*<WRAP lo[^>]*>([^\<]+)<\/WRAP>){0,1}/si";
 $regexLinks = "/  \* \[\[([^\|]+)\|([^\]]+)\]\]/si";
 
 preg_match($regexParseContent, $wikiText, $matches);
